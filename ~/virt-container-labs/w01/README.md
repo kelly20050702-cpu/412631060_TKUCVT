@@ -25,26 +25,27 @@ Codename:	noble
 | 記憶體 | 4 GB | `free -h \| grep Mem` | （3.8Gi） |
 | 磁碟 | 40 GB | `df -h /` | （40G） |
 | Hypervisor | VMware | `lscpu \| grep Hypervisor` | （VMware） |
+
 ![source](./images/source.png)
 
 ## 四層驗收證據
-- [ ] ① Repository：`cat /etc/apt/sources.list.d/docker.list` 輸出
+- [x] ① Repository：`cat /etc/apt/sources.list.d/docker.list` 輸出
 ![Repository](./images/step8.png)
-- [ ] ② Engine：`dpkg -l | grep docker-ce` 輸出
+- [x] ② Engine：`dpkg -l | grep docker-ce` 輸出
 ![Engine](./images/step9.png)
-- [ ] ③ Daemon：`sudo systemctl status docker` 顯示 active
+- [x] ③ Daemon：`sudo systemctl status docker` 顯示 active
 ![Daemon](./images/step10.png)
-- [ ] ④ 端到端：`sudo docker run hello-world` 成功輸出
+- [x] ④ 端到端：`sudo docker run hello-world` 成功輸出
 ![Hello World](./images/step11.png)
-- [ ] Compose：`docker compose version` 可執行
+- [x] Compose：`docker compose version` 可執行
 ![Compose](./images/step10.png)
 
 ## 容器操作紀錄
-- [ ] nginx：`sudo docker run -d -p 8080:80 nginx` + `curl localhost:8080` 輸出
+- [x] nginx：`sudo docker run -d -p 8080:80 nginx` + `curl localhost:8080` 輸出
 ![nginx](./images/step15.png)
-- [ ] alpine：`sudo docker run -it --rm alpine /bin/sh` 內部命令與輸出
+- [x] alpine：`sudo docker run -it --rm alpine /bin/sh` 內部命令與輸出
 ![alpine](./images/step16.png)
-- [ ] 映像列表：`sudo docker images` 輸出
+- [x] 映像列表：`sudo docker images` 輸出
 ![img](./images/step14.png)
 
 ## Snapshot 清單
@@ -65,6 +66,7 @@ Codename:	noble
 | docker 重裝可行 | 是 | 否 | （是） |
 | hello-world 成功 | 是 | N/A | （是） |
 | nginx curl 成功 | 是 | N/A | （是） |
+
 ![Snapshot](./images/step20.png)
 ![Snapshot](./images/step21.png)
 ![Snapshot](./images/step21-2.png)
@@ -77,6 +79,7 @@ Codename:	noble
 | 所需時間 | （較久） | （較短） |
 | 適用情境 | （確認知道哪裡要改） | （不確定哪裡有錯） |
 | 風險 | （可能會有更多錯誤） | （完整修復到過去） |
+
 ![manualrepair](./images/step2223.png)
 
 ## Snapshot 保留策略
@@ -87,12 +90,15 @@ Codename:	noble
 ## 最小可重現命令鏈
 （列出讓他人能重現故障注入與回復驗證的命令序列）
 - 再次入故障
+```bash
 sudo mv /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.list.broken
 - 驗證故障
+```bash
 sudo apt update
 - 使用snapshot回復執行操作：
 VM 關機後 → Snapshot Manager → 選 docker-ready → Revert → 開機
 - 回復驗證成功
+```bash
 ls /etc/apt/sources.list.d/docker.list
 sudo systemctl status docker --no-pager
 sudo docker --version
@@ -100,10 +106,11 @@ docker compose version
 sudo docker run --rm hello-world
 
 ## 排錯紀錄
-- 症狀：
-- 診斷：（你首先查了什麼？）
-- 修正：（做了什麼改動？）
-- 驗證：（如何確認修正有效？）
+- 症狀：移開docker.list後，執行sudo apt update而發生錯誤。
+- 診斷：發現/etc/apt/sources.list.d/變成 broken。
+- 修正：使用snapshot將狀態回到docker-ready。
+- 驗證：重新開機後執行sudo apt update，docker系統狀態還原，hello-world恢復正常。
 
 ## 設計決策
-（說明本週至少 1 個技術選擇與取捨）
+Q:為什麼不在windows跑docker，而是在VM裡跑？
+A:因為虛擬機裡面有snapshot回復功能，實驗時錯誤的話好解決，好回復到初始正常狀態。
