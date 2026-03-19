@@ -89,18 +89,13 @@ Codename:	noble
 
 ## 最小可重現命令鏈
 （列出讓他人能重現故障注入與回復驗證的命令序列）
-- 再次入故障
-```bash
+- 再次入故障:
 sudo mv /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.list.broken
-- 驗證故障
-
+- 驗證故障:
 sudo apt update
-
 - 使用snapshot回復執行操作：
 VM 關機後 → Snapshot Manager → 選 docker-ready → Revert → 開機
-
-- 回復驗證成功
-
+- 回復驗證成功:
 ls /etc/apt/sources.list.d/docker.list
 sudo systemctl status docker --no-pager
 sudo docker --version
