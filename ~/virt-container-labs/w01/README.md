@@ -93,12 +93,14 @@ Codename:	noble
 ```bash
 sudo mv /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.list.broken
 - 驗證故障
-```bash
+
 sudo apt update
+
 - 使用snapshot回復執行操作：
 VM 關機後 → Snapshot Manager → 選 docker-ready → Revert → 開機
+
 - 回復驗證成功
-```bash
+
 ls /etc/apt/sources.list.d/docker.list
 sudo systemctl status docker --no-pager
 sudo docker --version
