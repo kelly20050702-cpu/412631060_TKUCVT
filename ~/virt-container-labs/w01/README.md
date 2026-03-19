@@ -71,6 +71,9 @@ Codename:	noble
 ![Snapshot](./images/step21.png)
 ![Snapshot](./images/step21-2.png)
 ![Snapshot](./images/step25.png)
+![Snapshot](./images/step25-2.png)
+![Snapshot](./images/step25-3.png)
+![Snapshot](./images/step26.png)
 
 ## 手動修復 vs Snapshot 回復
 
