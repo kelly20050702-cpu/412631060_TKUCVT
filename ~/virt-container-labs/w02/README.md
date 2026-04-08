@@ -65,27 +65,29 @@
 ![故障2server-b回復後SSH服務](images/step20b.png)
 
 ## 排錯順序
-（寫出你的 L2 → L3 → L4 排錯步驟與每層使用的命令）
-第1步.L2資料連結層-物理與界面狀態：檢查網卡是否開啟、介面是否UP、是否拿到IP
-使用命令：ip address show
 
-第2步.L3網路層-IP連通：檢查封包是否能傳遞到達對端、路由是否正確
-使用命令：ip route show -> ping -c 2 <peer-host-only-ip>
+- 第1步.L2資料連結層-物理與界面狀態：檢查網卡是否開啟、介面是否UP、是否拿到IP
+使用命令：`ip address show`
 
-第3步.L4傳輸層-服務監聽：檢查SSH服務是否在運作、是否在監聽、連線是否被拒絕
-使用命令：ss -tlnp | grep :22 -> ssh <user>@<peer-host-only-ip> "hostname"
+- 第2步.L3網路層-IP連通：檢查封包是否能傳遞到達對端、路由是否正確
+使用命令：`ip route show` -> `ping -c 2 <peer-host-only-ip>`
+
+- 第3步.L4傳輸層-服務監聽：檢查SSH服務是否在運作、是否在監聽、連線是否被拒絕
+使用命令：`ss -tlnp | grep :22` -> `ssh <user>@<peer-host-only-ip> "hostname"`
 
 ## 網路拓樸圖
-（嵌入或連結 network-diagram.png）
 
 ![網路拓樸圖](network-diagram.png)
 
 ## 排錯紀錄
-- 症狀：我在 dev-a執行ping -c 2 <server-b-host-only-ip>測試連線正常，但進行 SSH連線時執行ssh <server-b-user>@<server-b-host-only-ip> "hostname" 2>&1，系統卻回傳Connection refused。
-- 診斷：因為可以ping成功，代表 L2/L3網路層連通性沒錯，故障點應該在 L4傳輸層，我在 server-b執行ss -tlnp | grep :22檢查服務監聽狀態，卻未看到port 22的監聽。
-- 修正：在 server-b重新啟動回復 SSH服務，執行sudo systemctl start ssh。
-- 驗證：當我再次在server-b執行 ss -tlnp | grep :22時，確認出現監聽紀錄；到dev-a執行ssh <server-b-user>@<server-b-host-only-ip> "hostname"時連線恢復正常了。
+
+- 症狀：我在 dev-a執行`ping -c 2 <server-b-host-only-ip>`測試連線正常，但進行 SSH連線時執行`ssh <server-b-user>@<server-b-host-only-ip> "hostname" 2>&1`，系統卻回傳Connection refused。
+- 診斷：因為可以ping成功，代表 L2/L3網路層連通性沒錯，故障點應該在 L4傳輸層，我在 server-b執行`ss -tlnp | grep :22`檢查服務監聽狀態，卻未看到port 22的監聽。
+- 修正：在 server-b重新啟動回復 SSH服務，執行`sudo systemctl start ssh`。
+- 驗證：當我再次在server-b執行 `ss -tlnp | grep :22`時，確認出現監聽紀錄；到dev-a執行`ssh <server-b-user>@<server-b-host-only-ip> "hostname"`時連線恢復正常了。
 
 ## 設計決策
-Q:為什麼 server-b 只設 Host-only 不給 NAT？
-A:Host-only是內網連線，無法上網，確保 server-b不會直接暴露在網際網路上，減少被外界隨意連上被駭客入侵的風險，只有在同個網段裡的dev-a才能連上它，這樣的配置方法提升了安全性。不受外部 DHCP 影響、IP配置穩定的特性，很適合做可重現的隔離實驗環境。
+
+- Q:為什麼 server-b 只設 Host-only 不給 NAT？
+- A:Host-only是內網連線，無法上網，確保 server-b不會直接暴露在網際網路上，減少被外界隨意連上被駭客入侵的風險，只有在同個網段裡的dev-a才能連上它，這樣的配置方法提升了安全性。不受外部 DHCP 影響、IP配置穩定的特性，很適合做可重現的隔離實驗環境。
+
