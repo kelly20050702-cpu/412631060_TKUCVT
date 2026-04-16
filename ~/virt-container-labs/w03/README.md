@@ -4,18 +4,37 @@
 
 | VM | 角色 | 網卡 | 模式 | IP | 開放埠與來源 |
 |---|---|---|---|---|---|
-| bastion | 跳板機 | NIC 1 | NAT | （填入） | SSH from any |
-| bastion | 跳板機 | NIC 2 | Host-only | （填入） | — |
-| app | 應用層 | NIC 1 | Host-only | （填入） | SSH from 192.168.56.0/24 |
-| db | 資料層 | NIC 1 | Host-only | （填入） | SSH from app + bastion |
+| bastion | 跳板機 | NIC 1 | NAT | （192.168.233.133） | SSH from any |
+| bastion | 跳板機 | NIC 2 | Host-only | （192.168.221.128） | — |
+| app | 應用層 | NIC 1 | Host-only | （192.168.221.129） | SSH from 192.168.221.0/24 |
+| db | 資料層 | NIC 1 | Host-only | （192.168.221.130） | SSH from app + bastion |
+
+> bastion
+![NAT&Host-only](images/step2b.png)
+
+> app
+![Host-only](images/step2a.png)
+
+> db
+![Host-only](images/step2d.png)
 
 ## SSH 金鑰認證
 
 - 金鑰類型：（例：ed25519）
+
+![產生金鑰](images/step6b.png)
+
 - 公鑰部署到：（例：app 和 db 的 ~/.ssh/authorized_keys）
+
+![部署公鑰](images/step7b.png)
+![部署公鑰](images/step8a.png)
+
 - 免密碼登入驗證：
   - bastion → app：（貼上輸出）
   - bastion → db：（貼上輸出）
+
+![停用密碼登入](images/step9a.png)
+![停用密碼登入驗證](images/step9b.png)
 
 ## 防火牆規則
 
@@ -53,7 +72,8 @@
 （用自己的話說明兩種錯誤的差異、各自指向什麼排錯方向）
 
 ## 網路拓樸圖
-（嵌入或連結 network-diagram）
+
+![網路拓樸圖](network-diagram.png)
 
 ## 排錯紀錄
 - 症狀：
