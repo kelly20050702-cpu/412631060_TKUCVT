@@ -92,9 +92,9 @@
 
 | 項目 | 故障前 | 故障中 | 回復後 |
 |---|---|---|---|
-| ss -tlnp grep :22 | 有監聽 | 無監聽 | （填入） |
-| bastion ping app | 成功 | 成功 | （填入） |
-| bastion SSH app | 成功 | **refused** | （填入） |
+| ss -tlnp grep :22 | 有監聽 | 無監聽 | （有監聽） |
+| bastion ping app | 成功 | 成功 | （成功） |
+| bastion SSH app | 成功 | **refused** | （成功） |
 
 > 故障前
 ![故障前](images/step23a1.png)
@@ -108,17 +108,32 @@
 ![回復驗證](images/step25b.png)
 
 ## timeout vs refused 差異
-（用自己的話說明兩種錯誤的差異、各自指向什麼排錯方向）
+
+- 1.Connection timeout 連線超時 -> 防火牆攔截
+：ping成功但 SSH連線卡住一段時間後，沒有得到任何回應，而噴出 timed out ->
+封包到達主機後被防火牆規則直接丟棄(Drop)，發起端未收到任何回應，導致 TCP交握超時。
+*排錯方向：L3網路層問題，須檢查防火牆與安全組規則。
+
+- 2.Connection refused 連線被拒絕 -> 服務端異常
+：ping成功但 SSH連線立即回傳 refused ->
+封包順利到達目標主機，但Port 22埠沒有任何程序在監聽，作業系統會主動回傳RST封包告知連線被拒絕。
+*排錯方向：L4傳輸層問題，服務沒跑或埠錯，須檢查SSH服務狀態是否啟動、當機與監聽port是否正確。
 
 ## 網路拓樸圖
 
 ![網路拓樸圖](network-diagram.png)
 
 ## 排錯紀錄
-- 症狀：
-- 診斷：（你首先查了什麼？）
-- 修正：（做了什麼改動？）
-- 驗證：（如何確認修正有效？）
+- 症狀：當我嘗試注入 SSH服務故障時，執行 `sudo systemctl stop ssh`後，預期應該要連不到了，但執行#確認 SSH已停`ss -tlnp | grep :22`時，跑出來發現竟然還能連線。
+
+- 診斷：在`sudo systemctl stop ssh`時，有跑出一段黃色警示字`Stopping 'ssh.service', but its triggering units are still active:ssh.socket`，提到 ssh.socket仍處於 active。反應出Ubuntu有自動喚醒機制，只要有連線進來，Socket就會把 SSH 服務再拉起來。
+
+- 修正：改為執行＃同時關閉服務和門鈴`sudo systemctl stop ssh.service ssh.socket`，徹底切斷監聽源。
+
+- 驗證：最後再次執行 `ss -tlnp | grep :22`確認了 Port 22確實消失了，且連線時出現 Connection refused，成功達成故障注入實驗。
 
 ## 設計決策
-（說明本週至少 1 個技術選擇與取捨，例如：為什麼 db 允許 bastion 直連而不是只允許從 app 跳？）
+
+- Q:為什麼 db 允許 bastion 直連而不是只允許從 app 跳？
+- A:
+
