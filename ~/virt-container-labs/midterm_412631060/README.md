@@ -1,14 +1,12 @@
 # 期中實作 — 412631060 莊佩欣
 
 ## 1. 架構與 IP 表
-<Mermaid 圖 + 表格>
 
 ![網路拓樸圖](network-diagram.png)
 
 ## 2. Part A：VM 與網路
-<命令 + 關鍵輸出>
 
-### ip -4 addr show 與 兩端互ping
+#### [ip -4 addr show 與 兩端互ping]
 
 > bastion
 ![ip & ping](screenshots/ipb.png)
@@ -17,9 +15,8 @@
 ![ip & ping](screenshots/ipa.png)
 
 ## 3. Part B：金鑰、ufw、ProxyJump
-<防火牆規則表 + ssh app 成功證據>
 
-### 防火牆規則
+#### [防火牆規則]
 
 > bastion
 ![ufw](screenshots/ufwb.png)
@@ -27,13 +24,12 @@
 > app
 ![ufw](screenshots/ufwa.png)
 
-### ssh app成功
+#### [ssh app成功]
 
 > app
 ![ssh](screenshots/ssh-proxyjump.png)
 
 ## 4. Part C：Docker 服務
-<systemctl status docker + curl 輸出>
 
 > systemctl status docker
 ![status](screenshots/docker-running1.png)
