@@ -38,55 +38,69 @@
 ![curl](screenshots/docker-running2.png)
 
 ## 5. Part D：故障演練
-### 故障 1：<F2>
+### 故障 1：<F2 防火牆規則阻斷 SSH>
 - 注入方式：
+在 app執行`sudo ufw reset`清空規則並開啟 default deny，模擬管理員誤刪規則或防火牆配置錯誤，導致 SSH (Port 22) 通道被封鎖。
 
 - 故障前：
+確認初始狀態下 SSH連線暢通。在 Host端執行`ssh app`測試登入，並在 app端以`sudo ufw status`檢查規則是否存在。
 
-![curl](screenshots/fault-F2-before1.png)
-![curl](screenshots/fault-F2-before2.png)
+![確認連線](screenshots/fault-F2-before1.png)
+![檢查規則](screenshots/fault-F2-before2.png)
 
 - 故障中：
+(1)注入故障：清空規則，開啟 default deny與攔截。
+(2)嘗試連線：`ssh app`出現Connection timed out卡住。
+(3)測試 L3 連通性：在bastion執行`ping 192.168.221.129`。
+(4)檢查網卡狀態：在app執行`ip link`，顯示網卡狀態為 UP。
+(5)檢查防火牆：在app執行`sudo ufw status`，顯示 Status: active啓用且規則清單是空的。
 
-![curl](screenshots/fault-F2-during1.png)
-![curl](screenshots/fault-F2-during2.png)
-![curl](screenshots/fault-F2-during3.png)
-![curl](screenshots/fault-F2-during4.png)
+![注入故障](screenshots/fault-F2-during1.png)
+![故障觀測](screenshots/fault-F2-during2.png)
+![驗證問題工具](screenshots/fault-F2-during3.png)
+![驗證問題工具](screenshots/fault-F2-during4.png)
 
 - 回復後：
+在 app實體終端執行`sudo ufw allow from 192.168.221.128 to any port 22 proto tcp`重新放行連線，確認`ssh app`連線恢復。
 
-![curl](screenshots/fault-F2-after1.png)
-![curl](screenshots/fault-F2-after2.png)
+![恢復規則](screenshots/fault-F2-after1.png)
+![驗證成功](screenshots/fault-F2-after2.png)
 
 - 診斷推論：
+當連線出現timeout時，透過ping與ip link證實網路路徑與實體介面均正常，因此排除L3網路層故障的可能性。由於SSH連線是無回應逾時而非被拒絕，配合ufw status發現無任何放行規則，判定此故障為L4防火牆規則攔截阻斷了tcp Port 22的三向交握。
 
 ### 故障 2：<F3>
 - 注入方式：
+在app執行`sudo systemctl stop docker`，模擬容器服務異常停止或未啟動的情境。
 
 - 故障前：
+確認Nginx容器正常，從bastion執行`curl -I http://192.168.221.129:8080`，看到HTTP/1.1 200 OK。並在app以`ss -tlnp`確認監聽狀態。
 
-![curl](screenshots/fault-F3-before1.png)
-![curl](screenshots/fault-F3-before2.png)
+![確認Nginx容器](screenshots/fault-F3-before1.png)
+![確認監聽狀態](screenshots/fault-F3-before2.png)
 
 - 故障中：
+(1)注入故障：`sudo systemctl stop docker`容器服務異常停止。
+(2)測試服務：在bastion執行`curl -I http://192.168.221.129:8080`，噴出Couldn't connect to server (Connection refused)。
+(3)檢查監聽埠口：在app執行`ss -tlnp`，發現8080埠口消失了。
+(4)檢查防火牆：在app執行`sudo ufw status`，看到 8080 規則還是 ALLOW。
+(5)檢查連線：在Host執行`ssh app`，連線還能成功。
 
-![curl](screenshots/fault-F3-during1.png)
-![curl](screenshots/fault-F3-during2.png)
-![curl](screenshots/fault-F3-during3.png)
-![curl](screenshots/fault-F3-during4.png)
+![注入故障](screenshots/fault-F3-during1.png)
+![故障觀測](screenshots/fault-F3-during2.png)
+![驗證問題工具](screenshots/fault-F3-during3.png)
+![驗證問題工具](screenshots/fault-F3-during4.png)
 
 - 回復後：
+在app執行`sudo systemctl start docker`恢復服務，驗證curl回到200 OK。
 
-![curl](screenshots/fault-F3-after1.png)
-![curl](screenshots/fault-F3-after2.png)
+![恢復規則](screenshots/fault-F3-after1.png)
+![驗證成功](screenshots/fault-F3-after2.png)
 
 - 診斷推論：
-
-
-### 症狀辨識（若選 F1+F2 必答）
-兩個都 timeout，我怎麼分？
+連線失敗回傳Connection refused拒絕連線，代表主機已收到封包但無程式對接。經ss -tlnp檢查確認8080埠口未被監聽，但ufw status顯示防火牆規則正常，排除防火牆攔截問題。此外ssh app仍可正常登入，證明網路路徑通暢。SSH通但8080不通的現象，，判定故障發生在Service。
 
 ## 6. 反思（200 字）
-這次做完，對「分層隔離」或「timeout 不等於壞了」的理解有什麼改變？
+- 這次做完，對「分層隔離」或「timeout 不等於壞了」的理解有什麼改變？
+- A:
 
-## 7. Bonus（選做）
