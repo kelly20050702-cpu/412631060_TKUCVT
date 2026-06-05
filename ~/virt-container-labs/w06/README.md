@@ -97,10 +97,14 @@
 ![回復後,清除](images/step31.32.png)
 
 ## 排錯紀錄
-- 症狀：
-- 診斷：
-- 修正：
-- 驗證：
+- 症狀：在執行多階段建置Multi-stage Build時，雖然映像檔成功建立，但容器啟動時卻噴出`python: can't open file '/app/app.py': [Errno 2] No such file or directory`找不到安裝套件的錯誤。
+
+- 診斷：檢查 Dockerfile.multi，發現在Runtime階段使用`COPY --from=builder`複製編譯產物時，目標路徑（/usr/local/lib/...等）與Builder 階段的`pip install --prefix=/install`安裝路徑沒有完準整對齊，或是忘記將app/原始碼複製到 Runtime階段的 WORKDIR 中。
+
+- 修正：修正Dockerfile.multi確保目錄完全對齊，在Builder階段指定`--prefix=/install`，並在 Runtime階段執行`COPY --from=builder /install/bin /usr/local/bin`和`COPY --from=builder /install/lib/...`。同時在Runtime階段明確加上WORKDIR /app並補上 COPY app/ .。
+
+- 驗證：重新執行`docker build -f Dockerfile.multi -t myapp:clean .`，建置成功後以 `docker run`啟動容器，網頁伺服器`curl http://localhost:8000`順利運行，且沒有任何路徑或套件遺失的報錯。
 
 ## 設計決策
-（說明本週至少 1 個技術選擇與取捨，例如：為什麼 runtime 選 `python:3.12-slim` 而不是 `alpine`？）
+- Q:為什麼 runtime 選 `python:3.12-slim` 而不是 `alpine`?
+- A:雖然alpine體積最小，但它使用的是musl libc和大多數的python 第三方套件（C 擴充套件)不相容。若選用alpine，在pip install時必須再下載編譯工具，從原始碼編譯，這會導致build Image時間暴增且容易報錯。所以此次採取多階段建置，在builder階段用功能完整的python:3.12快速下載、編譯套件；在最終的Runtime階段切換到較輕量且相容的python:3.12-slim，直接複製編譯產物。不僅擁有安全與小體積，又完全避開了冗長建置時間與相容性地雷，達到平衡建置速度、體積與穩定性的最佳取捨。
