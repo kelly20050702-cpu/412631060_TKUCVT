@@ -4,6 +4,7 @@
 
 ```mermaid
 graph LR
+
     subgraph Host[我的電腦]
         A[Host]
     end
@@ -13,12 +14,12 @@ graph LR
     end
 
     subgraph App_VM[app VM]
-        C[app 容器]
-        D[(db 容器)]
+        C["app 容器<br/>Flask:8080<br/>非 root + read_only"]
+        D[("db 容器<br/>postgres:16<br/>named volume")]
     end
 
     A -- "SSH 22" --> B
-    B -- "curl 8080" --> C
+    B -. "curl 8080" .-> C
     B -- "SSH 22" --> C
     C -- "DB_HOST=db" --> D
 ```
