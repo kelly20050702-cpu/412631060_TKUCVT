@@ -34,8 +34,8 @@ graph LR
 
 #### <snapshot>
 
-![snapshot](screenshots/snapshot 截圖1.png)
-![snapshot](screenshots/snapshot 截圖2.jpg)
+![snapshot](screenshots/snapshot1.png)
+![snapshot](screenshots/snapshot2.png)
 
 ## 3. Part B：Dockerfile 與快取
 
