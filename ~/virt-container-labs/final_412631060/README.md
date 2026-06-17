@@ -2,6 +2,7 @@
 
 ## 1. 架構總覽
 
+```mermaid
 graph LR
     subgraph Host[我的電腦]
         A[Host]
@@ -20,8 +21,9 @@ graph LR
     B -- "curl 8080" --> C
     B -- "SSH 22" --> C
     C -- "DB_HOST=db" --> D
+```
     
-####本專案採用跳板機（Bastion Host）架構以確保安全性。外部用戶僅能透過 SSH 連線至 bastion 主機，再由 bastion 轉發指令至後端的 app 與 db 容器。此隔離機制限制了容器對外直接暴露的風險，所有連線皆經由嚴格的網路權限控管，確保應用程式與資料庫在 Host-only 的虛擬環境中維持高度安全性。
+#### 本專案採用跳板機（Bastion Host）架構以確保安全性。外部用戶僅能透過 SSH 連線至 bastion 主機，再由 bastion 轉發指令至後端的 app 與 db 容器。此隔離機制限制了容器對外直接暴露的風險，所有連線皆經由嚴格的網路權限控管，確保應用程式與資料庫在 Host-only 的虛擬環境中維持高度安全性。
 
 ## 2. Part A：底座與基準點
 
@@ -32,7 +34,7 @@ graph LR
 #### <snapshot>
 
 ![snapshot](screenshots/snapshot 截圖1.png)
-![snapshot](screenshots/snapshot 截圖2.png)
+![snapshot](screenshots/snapshot 截圖2.jpg)
 
 ## 3. Part B：Dockerfile 與快取
 
